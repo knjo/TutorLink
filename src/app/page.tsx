@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import type { Tutor } from "@/types/tutor";
-import { tutors as TUTORS } from "@/data/tutors";
+import { tutors as TUTORS } from "@/data/mock-tutors";
 import FiltersSidebar from "@/components/filters-sidebar";
 import TutorCard from "@/components/TutorCard";
 import TutorProfileModal from "@/components/TutorProfileModal";

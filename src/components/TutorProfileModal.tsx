@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -106,7 +107,9 @@ export default function TutorProfileModal({ tutor, isOpen, onClose }: Props) {
 
           {/* Actions */}
           <div className="flex space-x-3 pt-4 border-t">
-            <Button className="flex-1">Book Session</Button>
+            <Link href={`/book/${tutor.id}`}>
+              <Button className="w-full">Book Session</Button>
+            </Link>
             <Button variant="outline" className="flex-1">Send Message</Button>
           </div>
         </div>
