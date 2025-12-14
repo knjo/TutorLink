@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { generateMockClasses, ScheduleClass, CURRENT_USER_NAME } from '@/data/mock-schedule';
-import { ScheduleView } from '@/components/schedule-view';
+import { ScheduleView } from '@/app/schedule/_component/schedule-view';
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
