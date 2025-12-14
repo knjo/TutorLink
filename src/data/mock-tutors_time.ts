@@ -11,66 +11,59 @@ export type TutorAvailability = {
   slots: TimeSlot[];
 };
 
-// Helper: 產生 30 分鐘間隔的時段 (09:00 - 17:00)
-const generateDailySlots = (availableRatio: number = 0.7) => {
+// Helper: 產生 30 分鐘間隔的時段
+// 這裡多傳入 date 和 tutorId 來做為產生隨機數的種子
+const generateDailySlots = (dateStr: string, tutorId: string) => {
   const slots: TimeSlot[] = [];
   const startHour = 9;
-  const endHour = 20;
+  const endHour = 18;
 
-  // 1. 先產生乾淨的時間表 (09:00, 09:30, 10:00...)
+  // 1. 先產生乾淨的時間表
   for (let hour = startHour; hour < endHour; hour++) {
     const hourStr = hour.toString().padStart(2, '0');
     slots.push({ time: `${hourStr}:00`, available: true });
     slots.push({ time: `${hourStr}:30`, available: true });
   }
-  // 加入最後一個 17:00 (通常不接客，但視為結束時間，這裡先加進去作為邊界)
   slots.push({ time: `${endHour}:00`, available: true });
 
-  // 2. 模擬隨機預約邏輯 (Mock Logic)
-  // 規則：如果這個時段被預約了，那它必定是 1 小時的課程，所以下一個時段也要被佔用
+  // 2. 模擬預約邏輯 (使用確定性算法代替 Math.random)
+  // 我們利用 Date 字串的最後一個字元 + tutorId + hour 來決定是否被預約
+  // 這樣每次重新整理，只要日期跟人一樣，結果就會一樣
+  const dateSeed = dateStr.charCodeAt(dateStr.length - 1); 
+  const idSeed = parseInt(tutorId) || 1;
+
   for (let i = 0; i < slots.length - 1; i++) {
-    // 每個時段有一定機率變成「被預約」
-    // 我們只在偶數或特定間隔檢查，避免過於密集的隨機覆蓋
-    if (Math.random() > availableRatio) {
+    // 取得小時的數字 (e.g., "09:30" -> 9)
+    const currentHour = parseInt(slots[i].time.split(':')[0]);
+    const currentMinute = parseInt(slots[i].time.split(':')[1]);
+    
+    // 🧮 偽隨機邏輯：混合各種數字來決定是否 available
+    // 例如：(日期參數 + ID + 小時 + 分鐘) 除以 7 的餘數如果小於 2，就當作被預約
+    const seed = dateSeed + idSeed + currentHour + (currentMinute / 10);
+    const isBooked = (seed % 5) < 1; 
+
+    if (isBooked) {
       slots[i].available = false;
       
-      // 若 A 被預約，下一個 (A+30min) 也必須被佔用
+      // 連鎖佔用下一個時段
       if (i + 1 < slots.length) {
         slots[i + 1].available = false;
       }
     }
   }
 
-  // 移除最後一個 17:00，因為通常不會有人預約 17:00 開始 (會上到 18:00)
-  // 如果你希望最晚可以約 17:00，就保留，但這裡我們把 17:00 當作最後邊界移除
   return slots.slice(0, slots.length - 1);
 };
 
 // 產生 Mock Data
-export const tutorsTime: TutorAvailability[] = [
-  {
-    tutorId: "1",
-    date: new Date().toISOString().split('T')[0],
-    slots: generateDailySlots(0.8)
-  },
-  {
-    tutorId: "1",
-    date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-    slots: generateDailySlots(0.6)
-  },
-  {
-    tutorId: "2",
-    date: new Date().toISOString().split('T')[0],
-    slots: generateDailySlots(0.9)
-  }
-];
+// 注意：我們改為動態生成，不先寫死在陣列裡，以免日期過期
+export const tutorsTime: TutorAvailability[] = []; 
 
+// 修改 getTutorSlots 函式，直接動態計算
 export function getTutorSlots(tutorId: string, date: Date | undefined): TimeSlot[] {
   if (!date) return [];
   const dateStr = date.toISOString().split('T')[0];
-  const found = tutorsTime.find(t => t.tutorId === tutorId && t.date === dateStr);
-  if (!found) {
-    return generateDailySlots(0.7); 
-  }
-  return found.slots;
+  
+  // 每次呼叫都用相同的算法產生
+  return generateDailySlots(dateStr, tutorId);
 }
